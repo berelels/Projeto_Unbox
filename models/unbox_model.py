@@ -30,6 +30,17 @@ class Unbox_Model:
             )
         """)
         
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS movements (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                inventory_id INTEGER,
+                type TEXT NOT NULL,
+                quantity INTEGER NOT NULL,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (inventory_id) REFERENCES inventory(id)
+            )
+        """)
+        
         self.conn.commit()
 
 
