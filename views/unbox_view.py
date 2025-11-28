@@ -16,7 +16,7 @@ class TelaPrincipalView:
        
      def construir(self):
             
-            self.page.title = "EduStock | Sistema de Inventário Escolar"
+            self.page.title = "UNBOX | Sistema de Inventário Escolar"
             self.page.window_width = 1000
             self.page.window_height = 800
             self.page.window_resizable = True 
@@ -31,23 +31,23 @@ class TelaPrincipalView:
                 group_alignment=-1.0, 
                 destinations=[
                     ft.NavigationRailDestination(
-                        icon=ft.icons.DASHBOARD_OUTLINED,
-                        selected_icon=ft.icons.DASHBOARD,
+                        icon=ft.Icons.DASHBOARD_OUTLINED,
+                        selected_icon=ft.Icons.DASHBOARD,
                         label="Dashboard",
                     ),
                     ft.NavigationRailDestination(
-                        icon=ft.icons.CATEGORY_OUTLINED,
-                        selected_icon=ft.icons.CATEGORY,
+                        icon=ft.Icons.CATEGORY_OUTLINED,
+                        selected_icon=ft.Icons.CATEGORY,
                         label="Categorias",
                     ),
                     ft.NavigationRailDestination(
-                        icon=ft.icons.INVENTORY_2_OUTLINED,
-                        selected_icon=ft.icons.INVENTORY_2,
+                        icon=ft.Icons.INVENTORY_2_OUTLINED,
+                        selected_icon=ft.Icons.INVENTORY_2,
                         label="Itens",
                     ),
                     ft.NavigationRailDestination(
-                        icon=ft.icons.SWAP_HORIZ_OUTLINED,
-                        selected_icon=ft.icons.SWAP_HORIZ,
+                        icon=ft.Icons.SWAP_HORIZ_OUTLINED,
+                        selected_icon=ft.Icons.SWAP_HORIZ,
                         label="Movimentações",
                     ),
                 ],
@@ -73,6 +73,51 @@ class TelaPrincipalView:
             self.page.add(layout_principal)
             
             
-            self.controller.handle_navigation_change(ft.ControlEvent(data="0"))
+            self.controller.handle_navigation_change(type("E", (), {"data": "0"}))
+
+
+
+ 
+     def _layout_cadastro_categoria(self):
+    
+        self.nome_categoria_input = ft.TextField(
+        label="Nome da Categoria (Eletrônico, Mobiliário,Esportivo,Material Didático,Limpeza)",
+        width=400,
+        hint_text="Nome Único (Exigência do Carlos)"
+    )
+
+        self.categorias_data_table = ft.DataTable(
+        columns=[
+            ft.DataColumn(ft.Text("ID")),
+            ft.DataColumn(ft.Text("Nome")),
+        ],
+        rows=[], 
+    )
+    
+        return ft.Column([
+        ft.Text(" Cadastro de Categorias", size=30, weight=ft.FontWeight.BOLD),
+        ft.Divider(),
         
+        
+        ft.Row([
+            self.nome_categoria_input,
+            ft.ElevatedButton(
+                "Salvar Categoria",
+                icon=ft.Icons.SAVE,
+                
+                on_click=self.controller.salvar_nova_categoria 
+            ),
+        ], alignment=ft.MainAxisAlignment.START),
+        
+        ft.Divider(),
+        
+        
+        ft.Text("Categorias Existentes:", size=18, weight=ft.FontWeight.W_600),
+        ft.Container(
+            content=self.categorias_data_table,
+            
+            scroll=ft.ScrollMode.ADAPTIVE, 
+            expand=True 
+        )
+    ], expand=True)
 
