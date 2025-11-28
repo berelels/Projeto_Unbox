@@ -86,16 +86,16 @@ class Unbox_Model:
             print(f"[X] Erro ao criar local: {e}")
             
 
-    def create_staff(self, name, role="Teacher"):
+    def create_staff(self, name, role="Professor"):
         """
         Cria um novo membro da equipe no banco de dados.
 
         Este método insere um registro de um novo membro da equipe na tabela 'staff',
-        atribuindo um nome e um papel. O papel padrão é 'Teacher'.
+        atribuindo um nome e um papel. O papel padrão é 'Professor'.
 
         Args:
             name (str): O nome do membro da equipe a ser criado.
-            role (str, opcional): O papel do membro da equipe. O padrão é 'Teacher'.
+            role (str, opcional): O papel do membro da equipe. O padrão é 'Professor'.
         """
         try:
             cur = self.conn.cursor()
