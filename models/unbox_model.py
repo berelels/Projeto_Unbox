@@ -208,3 +208,22 @@ class Unbox_Model:
         except Exception as e:
             self.conn.rollback()
             print(f"[X] Erro Movimento: {e}")
+    
+
+    def get_categories(self):
+        """
+        Recupera todas as categorias disponíveis do banco de dados.
+        
+        Executa uma consulta SQL para obter o id e nome de todas as categorias
+        armazenadas na tabela 'categories'. Em caso de erro na execução da query,
+        a exceção é capturada e exibida no console.
+        Args:
+            self: Referência à instância da classe.
+        """
+        try:
+            cur = self.conn.cursor()
+            cur.execute("SELECT id, name FROM categories")
+            return cur.fetchall()
+        except Exception as e:
+            print(f"[X] Erro ao buscar categorias: {e}")
+            return []

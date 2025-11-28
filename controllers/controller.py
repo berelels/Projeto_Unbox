@@ -1,51 +1,77 @@
 import flet as ft
-from models import Unbox_Model
-from views import TelaPrincipalView
+from models.unbox_model import Unbox_Model
+from views.unbox_view import TelaPrincipalView
 
 class Unbox_Controller:
-    def __init__(self, page: ft.Page):
-        self.page = page
-        self.model = TelaPrincipalView()
-        self.view = TelaPrincipalView(page)
+    def __init__(self, model, view=None):
+        self.model = model
+        self.view = view
 
-        self.view.controller = self
-        self.view.carregar_interface()
-        self.preencher_categorias()
+    def registrar_view(self, view):
+        """Método chamado pela View para se conectar ao Controller"""
+        self.view = view
+        self.carregar_categorias_no_dropdown()
 
-    def preencher_categorias(self):
-        try:
-            dados_categorias = self.model.obter_categorias()
-            opcoes_drop = []
-            for id, nome in dados_categorias:
-                opcoes_drop.append(ft.dropdown.Option(text=nome))
-                
-        except Exception as e:
-            self.view.mostrar_mensagem(f"Erro ao carregar categorias: {e}", ft.colors.RED)
-        self.view.dd_categoria.options = opcoes_drop
-
-    def salvar_item(self, e):
-        patrimonio = self.view.txt_patrimonio.value
-        nome_item = self.view.txt_nome.value
-        categoria = self.view.dd_categoria.value
-
-        if not patrimonio or not nome_item or not categoria:
-            self.view.mostrar_mensagem("Atenção: Preencha todos os campos!", ft.colors.ORANGE)
-            self.view.txt_patrimonio.focus()
-            return
-        
-        resultado = self.model.insert_item(patrimonio, nome_item, categoria)
-        #caminho certo:
-        if resultado == "Sucesso":
-            self.view.mostrar_mensagem(f"Item '{nome_item}' cadastrado com sucesso!", ft.colors.GREEN)
-            self.view.limpar_campos()
-        #caminho errado:
-        elif resultado == "Erro_duplicado":
-            self.view.mostrar_mensagem(f"ERRO: O Patrimônio '{patrimonio}' já existe no sistema.", ft.colors.RED)
-            self.view.txt_patrimonio.focus()
-
+    def handle_navigation_change(self, e):
+        """Gerencia a troca de telas no NavigationRail"""
+        if isinstance(e, int):
+            index = e
+        elif hasattr(e, "control"):
+            index = e.control.selected_index
         else:
-            #erro genérico
-            self.view.mostrar_mensagem(f"Erro interno do sistema: {resultado}", ft.colors.RED_900)
- 
-        #atualizando a UI
-        self.page.update()
+            try:
+                index = int(e.data)
+            except:
+                index = 0
+
+        self.view.content_area.content = ft.Container(content=ft.Text(f"Carregando tela {index}..."))
+        
+        if index == 0:
+             self.view.content_area.content = ft.Text("Dashboard (Em construção)")
+        elif index == 1:
+             self.view.content_area.content = self.view._layout_cadastro_categoria()
+             self.carregar_categorias_update_table()
+        elif index == 2:
+             self.view.content_area.content = ft.Text("Tela de Itens (Em construção)")
+        elif index == 3:
+             self.view.content_area.content = ft.Text("Tela de Movimentações (Em construção)")
+
+        self.view.page.update()
+
+    def carregar_categorias_no_dropdown(self):
+        """Preenche dropdowns (se existirem na tela atual)"""
+        pass 
+
+    def carregar_categorias_update_table(self):
+        """Busca categorias no banco e atualiza a tabela da View"""
+        dados = self.model.get_categories()
+        
+        self.view.categorias_data_table.rows.clear()
+        
+        for cat_id, cat_nome in dados:
+            row = ft.DataRow(cells=[
+                ft.DataCell(ft.Text(str(cat_id))),
+                ft.DataCell(ft.Text(cat_nome)),
+            ])
+            self.view.categorias_data_table.rows.append(row)
+        
+        self.view.page.update()
+
+    def salvar_nova_categoria(self, e):
+        """Chamado pelo botão Salvar na tela de Categorias"""
+        nome = self.view.nome_categoria_input.value
+        
+        if not nome:
+            self.view.page.snack_bar = ft.SnackBar(ft.Text("Digite um nome para a categoria!"), bgcolor=ft.colors.RED)
+            self.view.page.snack_bar.open = True
+            self.view.page.update()
+            return
+
+        self.model.create_category(nome)
+        
+        self.view.nome_categoria_input.value = ""
+        self.view.page.snack_bar = ft.SnackBar(ft.Text(f"Categoria '{nome}' salva!"), bgcolor=ft.colors.GREEN)
+        self.view.page.snack_bar.open = True
+        
+        self.carregar_categorias_update_table()
+        self.view.page.update()

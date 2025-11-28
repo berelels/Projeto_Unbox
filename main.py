@@ -1,13 +1,16 @@
 import flet as ft
 from views.unbox_view import TelaPrincipalView
+from controllers.controller import Unbox_Controller
+from models.unbox_model import Unbox_Model
 
-class AppController:
-    #lógica de navegação aqui
+def main(page: ft.Page):
+    """
+    Função principal que inicializa o MVC.
+    """
+    modelo = Unbox_Model()
+    controlador = Unbox_Controller(model=modelo, view=None) 
+    visao = TelaPrincipalView(page=page, controller=controlador)
+    visao.construir()
 
-    def main(page: ft.Page):
-        controller = AppController(page)
-        app_view = TelaPrincipalView(page, controller)
-        app_view.construir()
-        
-    if __name__ == "__main__":
-        ft.app(target=main)
+if __name__ == "__main__":
+    ft.app(target=main)
