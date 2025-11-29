@@ -121,3 +121,38 @@ class TelaPrincipalView:
         )
     ], expand=True)
 
+     def _layout_movimentacao(self):
+        
+      
+        self.input_patrimonio_emprestimo = ft.TextField(
+            label="Nº do Patrimônio",
+            width=250,
+            hint_text="Número na plaquinha de metal do item"
+        )
+        self.input_pessoa_emprestimo = ft.TextField(
+            label="Nome do Professor/Responsável",
+            width=300,
+            hint_text=" Prof. Admistrador "
+        )
+        self.input_patrimonio_devolucao = ft.TextField(
+            label="Nº do Patrimônio",
+            width=250,
+            hint_text="Item a ser devolvido"
+        )
+        self.movimentacoes_data_table = ft.DataTable(
+            columns=[
+            ft.DataColumn(ft.Text("ID")),
+            ft.DataColumn(ft.Text("Patrimônio")),
+            ft.DataColumn(ft.Text("Item")),
+            ft.DataColumn(ft.Text("Emprestado Para")),
+            ft.DataColumn(ft.Text("Desde já")),
+            ft.DataColumn(ft.Text("Ação")),
+            ],
+            rows=[]
+        )
+
+        return ft.Column([
+        ft.Text(" Emprestimo e Devoluçao", size=30, weight=ft.FontWeight.BOLD),
+        ft.Divider(),
+        
+                          
