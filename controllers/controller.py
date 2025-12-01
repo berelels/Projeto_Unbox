@@ -79,7 +79,7 @@ class Unbox_Controller:
         else:
             self.view.mostrar_mensagem(f"Erro no banco: {resultado}", ft.colors.RED_900)
            
-    #RF 53:
+    #RF 53: check-in inteligente
     
     def acao_registrar_devolucao(self, e):
         patrimonio = self.view.txt_emp_patrimonio.value.strip()
