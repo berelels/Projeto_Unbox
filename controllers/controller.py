@@ -148,4 +148,47 @@ class Unbox_Controller:
        
         self.view.page.update()
  
+    #RF 051: geração do recibo em pdf
+    def gerar_recibo_pdf(self, patrimonio, pessoa):
+        try:
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+           
+            #cabeçalho
+            pdf.set_font("Arial", 'B', 16)
+            pdf.cell(200, 10, txt="RECIBO DE EMPRÉSTIMO DE ATIVO", ln=1, align='C')
+            pdf.ln(10)
+           
+            #corpo
+            pdf.set_font("Arial", size=12)
+            texto = f"""
+            Declaro que recebi o item abaixo listado em perfeitas condições de uso e funcionamento.
+            Comprometo-me a devolvê-lo na data estipulada ou quando solicitado pela coordenação.
+           
+            Dados do Empréstimo:
+            ------------------------------------------------
+            Data: {datetime.now().strftime("%d/%m/%Y %H:%M")}
+            Responsável: {pessoa}
+            Item Patrimônio: {patrimonio}
+            ------------------------------------------------
+            """
+            pdf.multi_cell(0, 10, txt=texto)
+            pdf.ln(20)
+           
+            #assinatura
+            pdf.cell(200, 10, txt="_" * 50, ln=1, align='C')
+            pdf.cell(200, 10, txt="Assinatura do Responsável", ln=1, align='C')
+           
+            #salvar e abrir
+            nome_arquivo = f"recibo_{patrimonio}.pdf"
+            pdf.output(nome_arquivo)
+           
+            #abre o PDF automaticamente
+            os.startfile(nome_arquivo)
+           
+        except Exception as ex:
+            print(f"Erro ao gerar PDF: {ex}")
+            self.view.mostrar_mensagem("Empréstimo ok, mas erro ao gerar PDF.", ft.colors.ORANGE)
+ 
     
