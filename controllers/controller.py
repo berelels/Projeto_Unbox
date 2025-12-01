@@ -191,4 +191,19 @@ class Unbox_Controller:
             print(f"Erro ao gerar PDF: {ex}")
             self.view.mostrar_mensagem("Empréstimo ok, mas erro ao gerar PDF.", ft.colors.ORANGE)
  
-    
+    #RF 052: exportação excel
+    def exportar_relatorio(self, e):
+        try:
+            dados = self.model.search_itens("")
+            #cria dataFrame com pandas
+            df = pd.DataFrame(dados, columns=["Patrimônio", "Nome", "Categoria", "Status Code"])
+           
+            status_map = {0: 'Disponível', 1: 'Emprestado', 2: 'Manutenção'}
+            df['Status Code'] = df['Status Code'].map(status_map)
+           
+            df.to_excel("inventario_escolar.xlsx", index=False)
+            self.view.mostrar_mensagem("Relatório 'inventario_escolar.xlsx' gerado!", ft.colors.BLUE)
+            #abre a pasta onde salvou
+            os.startfile(".")
+        except Exception as ex:
+            self.view.mostrar_mensagem(f"Erro ao exportar Excel: {ex}", ft.colors.RED)
