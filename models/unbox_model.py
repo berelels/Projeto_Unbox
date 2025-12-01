@@ -1,4 +1,7 @@
 import sqlite3
+import shutil
+from pathlib import Path
+import os
 
 class Unbox_Model:
     """
@@ -8,7 +11,7 @@ class Unbox_Model:
     
     def __init__(self):
         self.conn = None
-        self.conn = sqlite3.connect('inventory.db')
+        self.initialize_database() 
         self.conn.execute("PRAGMA foreign_keys = ON")
         cur = self.conn.cursor()
         
@@ -64,6 +67,40 @@ class Unbox_Model:
         
         self.conn.commit()
 
+
+    def initialize_database(self):
+        """
+        Inicializa o banco de dados da aplicação.
+        
+        Este método verifica se o banco de dados existe no diretório de Documentos
+        do usuário. Caso não exista, tenta copiar um template pré-configurado.
+        Se o template não estiver disponível, cria um banco de dados vazio.
+        Após a verificação/criação, estabelece a conexão com o banco de dados.
+        Args:
+            self: Referência à instância da classe.
+        """
+        
+        base_path = Path.home()
+        documents_path = base_path / "Documents"
+        db_destination = documents_path / "inventory.db"
+        db_template = Path("inventory_template.db")
+        documents_path.mkdir(parents=True, exist_ok=True)
+
+        if not db_destination.exists():
+            print(f"[INFO] Banco não encontrado em: {db_destination}")
+            try:
+                if db_template.exists():
+                    shutil.copy(db_template, db_destination)
+                    print(f"[OK] Banco copiado do template com sucesso.")
+                else:
+                    print(f"[AVISO] Template '{db_template}' não encontrado. Criando banco vazio.")
+            except Exception as e:
+                print(f"[X] Erro de permissão/cópia: {e}")
+        else:
+            print(f"[INFO] Banco encontrado em: {db_destination}")
+            
+        self.conn = sqlite3.connect(str(db_destination))
+        
 
     def create_location(self, name, building="Principal"):
         """
@@ -208,3 +245,36 @@ class Unbox_Model:
         except Exception as e:
             self.conn.rollback()
             print(f"[X] Erro Movimento: {e}")
+            
+            
+    def get_dashboard_stats(self):
+        """
+        Recupera estatísticas do painel de controle do inventário.
+        
+        Executa consultas no banco de dados para obter informações resumidas sobre
+        o estado atual do inventário, incluindo itens com estoque baixo, itens
+        emprestados e quantidade total de itens.
+        Returns:
+            dict: Dicionário contendo as seguintes chaves:
+                - 'low_stock' (int): Quantidade de itens com estoque abaixo do mínimo permitido
+                - 'borrowed_items' (int): Quantidade total de itens emprestados (movimentações de saída)
+                - 'total_items' (int): Quantidade total de itens no inventário
+        """
+        
+        try:
+            cur = self.conn.cursor()
+            stats = {}
+            
+            cur.execute("SELECT COUNT(*) FROM inventory WHERE quantity_available <= min_stock")
+            stats['low_stock'] = cur.fetchone()[0]
+            
+            cur.execute("SELECT COALESCE(SUM(quantity), 0) FROM movements WHERE type = 'OUT'")
+            stats['borrowed_items'] = cur.fetchone()[0]
+
+            cur.execute("SELECT COUNT(*) FROM inventory")
+            stats['total_items'] = cur.fetchone()[0]
+
+            return stats
+
+        except Exception as e:
+            print(f"[X] Erro: {e}")        
