@@ -62,15 +62,31 @@ class Unbox_Controller:
     def carregar_dashboard_stats(self):
         """Carrega estatísticas do dashboard"""
         try:
-            if not self.view or not hasattr(self.view, 'low_stock_count_text'):
+            if not self.view:
                 return
                 
             stats = self.model.get_dashboard_stats()
-            self.view.low_stock_count_text.value = str(stats.get('low_stock', 0))
+            print(f"[DEBUG] Stats carregados: {stats}")  # Debug
+            
+            # Atualiza low stock
+            if hasattr(self.view, 'low_stock_count_text') and self.view.low_stock_count_text:
+                self.view.low_stock_count_text.value = str(stats.get('low_stock', 0))
+            
+            # Atualiza total de itens
+            if hasattr(self.view, 'total_items_text') and self.view.total_items_text:
+                self.view.total_items_text.value = str(stats.get('total_items', 0))
+            
+            # Atualiza itens emprestados
+            if hasattr(self.view, 'borrowed_items_text') and self.view.borrowed_items_text:
+                self.view.borrowed_items_text.value = str(stats.get('borrowed_items', 0))
+            
             self.page.update()
+            print("[DEBUG] Dashboard atualizado com sucesso!")  # Debug
             
         except Exception as e:
-            print(f"Erro ao carregar dashboard: {e}")
+            print(f"[ERRO] Erro ao carregar dashboard: {e}")
+            import traceback
+            traceback.print_exc()
  
     def salvar_nova_categoria(self, e):
         """Salva uma nova categoria"""
