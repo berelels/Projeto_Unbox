@@ -2,6 +2,11 @@ import sqlite3
 import shutil
 from pathlib import Path
 import os
+import json
+from pathlib import Path
+from datetime import datetime
+import hashlib
+
 
 class Unbox_Model:
     """
@@ -14,6 +19,13 @@ class Unbox_Model:
         self.initialize_database() 
         self.conn.execute("PRAGMA foreign_keys = ON")
         cur = self.conn.cursor()
+        self.users_file = Path.home() / "Documents" / "unbox_users.json"
+        self.logs_file = Path.home() / "Documents" / "unbox_user_logs.json"
+        self.usuarios = []
+        self.logs_criacao_exclusao = []
+        self.usuario_logado = None
+        self.carregar_dados()
+        self._criar_admin_padrao()
         
         cur.execute("""
             CREATE TABLE IF NOT EXISTS categories (
@@ -255,6 +267,7 @@ class Unbox_Model:
             return []
         
         
+        
     def obter_categorias(self):
         """Obtém todas as categorias do banco de dados"""
         try:
@@ -264,6 +277,7 @@ class Unbox_Model:
         except Exception as e:
             print(f"[X] Erro ao obter categorias: {e}")
             return []
+    
     
     
     def get_recent_movements(self, limit=50):
@@ -296,6 +310,7 @@ class Unbox_Model:
             return []
     
     
+    
     def verifica_patrimonio_existe(self, serial_number):
         """
         NOVA IMPLEMENTAÇÃO: Verifica se já existe um item com este número de patrimônio.
@@ -314,6 +329,7 @@ class Unbox_Model:
         except Exception as e:
             print(f"[X] Erro ao verificar patrimônio: {e}")
             return False
+    
     
     
     def buscar_item_por_patrimonio(self, serial_number):
@@ -337,6 +353,7 @@ class Unbox_Model:
         except Exception as e:
             print(f"[X] Erro ao buscar item: {e}")
             return None
+    
     
     
     def verificar_ultimo_emprestimo(self, serial_number):
@@ -375,6 +392,7 @@ class Unbox_Model:
             return None
     
     
+    
     def deletar_categoria(self, categoria_id):
         """
         NOVA IMPLEMENTAÇÃO: Deleta uma categoria.
@@ -402,6 +420,7 @@ class Unbox_Model:
             self.conn.rollback()
             print(f"[X] Erro ao deletar categoria: {e}")
             raise
+    
     
     
     def deletar_item(self, serial_number):
@@ -438,3 +457,202 @@ class Unbox_Model:
             self.conn.rollback()
             print(f"[X] Erro ao deletar item: {e}")
             raise
+
+
+
+    def _hash_senha(self, senha):
+        """Gera hash seguro da senha"""
+        return hashlib.sha256(senha.encode()).hexdigest()
+    
+    
+    
+    def _criar_admin_padrao(self):
+        """Cria usuário admin padrão se não existir nenhum usuário"""
+        if not self.usuarios:
+            self.usuarios.append({
+                "usuario": "admin",
+                "senha": self._hash_senha("admin123"),
+                "tipo": "DIRETOR",
+                "data_criacao": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
+            self.salvar_dados()
+            print("[INFO] Usuário admin padrão criado (usuario: admin, senha: admin123)")
+    
+    
+    
+    def carregar_dados(self):
+        """Carrega usuários e logs do JSON"""
+        try:
+            # Carrega usuários
+            if self.users_file.exists():
+                with open(self.users_file, 'r', encoding='utf-8') as f:
+                    self.usuarios = json.load(f)
+            else:
+                self.usuarios = []
+            
+            # Carrega logs
+            if self.logs_file.exists():
+                with open(self.logs_file, 'r', encoding='utf-8') as f:
+                    self.logs_criacao_exclusao = json.load(f)
+            else:
+                self.logs_criacao_exclusao = []
+                
+            print(f"[OK] {len(self.usuarios)} usuários carregados.")
+            
+        except Exception as e:
+            print(f"[ERRO] Erro ao carregar usuários: {e}")
+            self.usuarios = []
+            self.logs_criacao_exclusao = []
+    
+    
+    
+    def salvar_dados(self):
+        """Salva usuários e logs no JSON"""
+        try:
+            # Salva usuários
+            with open(self.users_file, 'w', encoding='utf-8') as f:
+                json.dump(self.usuarios, f, indent=4, ensure_ascii=False)
+            
+            # Salva logs
+            with open(self.logs_file, 'w', encoding='utf-8') as f:
+                json.dump(self.logs_criacao_exclusao, f, indent=4, ensure_ascii=False)
+            
+            print("[OK] Dados de usuários salvos.")
+            
+        except Exception as e:
+            print(f"[ERRO] Erro ao salvar usuários: {e}")
+    
+    
+    
+    def validar_login(self, usuario, senha):
+        """
+        Valida credenciais de login
+        
+        Returns:
+            dict: Dados do usuário se válido, None caso contrário
+        """
+        senha_hash = self._hash_senha(senha)
+        
+        for user in self.usuarios:
+            if user["usuario"] == usuario and user["senha"] == senha_hash:
+                self.usuario_logado = user.copy()
+                self.usuario_logado.pop("senha")  # Remove senha da sessão
+                return self.usuario_logado
+        
+        return None
+    
+    
+    
+    def criar_usuario(self, nome, senha, tipo, criado_por):
+        """
+        Cria um novo usuário
+        
+        Args:
+            nome (str): Nome de usuário
+            senha (str): Senha
+            tipo (str): PROFESSOR, COORDENADOR, DIRETOR, ACCESSFULL
+            criado_por (str): Usuário que está criando
+            
+        Returns:
+            bool: True se criado com sucesso
+        """
+        try:
+            if any(u["usuario"] == nome for u in self.usuarios):
+                raise ValueError("Usuário já existe!")
+            
+            # Valida tipo
+            tipos_validos = ["PROFESSOR", "COORDENADOR", "DIRETOR", "ACCESSFULL"]
+            if tipo.upper() not in tipos_validos:
+                raise ValueError(f"Tipo inválido! Use: {', '.join(tipos_validos)}")
+            
+            # Cria usuário
+            novo_usuario = {
+                "usuario": nome,
+                "senha": self._hash_senha(senha),
+                "tipo": tipo.upper(),
+                "data_criacao": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+            
+            self.usuarios.append(novo_usuario)
+            
+            # Registra log
+            self.logs_criacao_exclusao.append({
+                "acao": "CRIACAO_USUARIO",
+                "nome": nome,
+                "tipo": tipo.upper(),
+                "usuario_responsavel": criado_por,
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
+            
+            self.salvar_dados()
+            return True
+            
+        except Exception as e:
+            print(f"[ERRO] Erro ao criar usuário: {e}")
+            raise
+    
+    
+    
+    def excluir_usuario(self, nome, excluido_por):
+        """
+        Exclui um usuário
+        
+        Args:
+            nome (str): Nome do usuário a excluir
+            excluido_por (str): Usuário que está excluindo
+            
+        Returns:
+            bool: True se excluído com sucesso
+        """
+        try:
+            # Busca usuário
+            usuario = None
+            for u in self.usuarios:
+                if u["usuario"] == nome:
+                    usuario = u
+                    break
+            
+            if not usuario:
+                raise ValueError("Usuário não encontrado!")
+            
+            # Remove usuário
+            self.usuarios.remove(usuario)
+            
+            # Registra log
+            self.logs_criacao_exclusao.append({
+                "acao": "EXCLUSAO_USUARIO",
+                "nome": nome,
+                "tipo": usuario["tipo"],
+                "usuario_responsavel": excluido_por,
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
+            
+            self.salvar_dados()
+            return True
+            
+        except Exception as e:
+            print(f"[ERRO] Erro ao excluir usuário: {e}")
+            raise
+    
+    
+    
+    def obter_usuarios(self):
+        """Retorna lista de usuários (sem senhas)"""
+        usuarios_safe = []
+        for u in self.usuarios:
+            user_copy = u.copy()
+            user_copy.pop("senha", None)
+            usuarios_safe.append(user_copy)
+        return usuarios_safe
+    
+    
+    
+    def obter_logs(self, limit=50):
+        """Retorna logs de criação/exclusão"""
+        return self.logs_criacao_exclusao[-limit:][::-1]  # Últimos N, ordem reversa
+    
+    
+    
+    def logout(self):
+        """Faz logout do usuário atual"""
+        self.usuario_logado = None
