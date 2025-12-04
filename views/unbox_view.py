@@ -1,9 +1,10 @@
 import flet as ft
 
 class TelaPrincipalView:
-    def __init__(self, page: ft.Page, controller):
+    def __init__(self, page: ft.Page, controller, usuario_logado=None):
         self.page = page
         self.controller = controller
+        self.usuario_logado = usuario_logado
         
         # Inicializa TODOS os componentes no __init__
         self._inicializar_componentes()
@@ -187,35 +188,47 @@ class TelaPrincipalView:
         self.page.window.resizable = True
         self.page.padding = 0
         
-        # Navigation Rail
+        # Navigation Rail - Adiciona aba de Usuários
+        destinations = [
+            ft.NavigationRailDestination(
+                icon=ft.Icons.DASHBOARD_OUTLINED,
+                selected_icon=ft.Icons.DASHBOARD,
+                label="Dashboard",
+            ),
+            ft.NavigationRailDestination(
+                icon=ft.Icons.CATEGORY_OUTLINED,
+                selected_icon=ft.Icons.CATEGORY,
+                label="Categorias",
+            ),
+            ft.NavigationRailDestination(
+                icon=ft.Icons.INVENTORY_2_OUTLINED,
+                selected_icon=ft.Icons.INVENTORY_2,
+                label="Itens",
+            ),
+            ft.NavigationRailDestination(
+                icon=ft.Icons.SWAP_HORIZ_OUTLINED,
+                selected_icon=ft.Icons.SWAP_HORIZ,
+                label="Movimentações",
+            ),
+        ]
+        
+        # Adiciona aba de Usuários apenas para DIRETOR
+        if self.usuario_logado and self.usuario_logado.get("tipo") == "DIRETOR":
+            destinations.append(
+                ft.NavigationRailDestination(
+                    icon=ft.Icons.PEOPLE_OUTLINED,
+                    selected_icon=ft.Icons.PEOPLE,
+                    label="Usuários",
+                )
+            )
+        
         self.navigation_rail = ft.NavigationRail(
             selected_index=0,
             label_type=ft.NavigationRailLabelType.ALL,
             min_width=100,
             min_extended_width=200,
             group_alignment=-1.0,
-            destinations=[
-                ft.NavigationRailDestination(
-                    icon=ft.Icons.DASHBOARD_OUTLINED,
-                    selected_icon=ft.Icons.DASHBOARD,
-                    label="Dashboard",
-                ),
-                ft.NavigationRailDestination(
-                    icon=ft.Icons.CATEGORY_OUTLINED,
-                    selected_icon=ft.Icons.CATEGORY,
-                    label="Categorias",
-                ),
-                ft.NavigationRailDestination(
-                    icon=ft.Icons.INVENTORY_2_OUTLINED,
-                    selected_icon=ft.Icons.INVENTORY_2,
-                    label="Itens",
-                ),
-                ft.NavigationRailDestination(
-                    icon=ft.Icons.SWAP_HORIZ_OUTLINED,
-                    selected_icon=ft.Icons.SWAP_HORIZ,
-                    label="Movimentações",
-                ),
-            ],
+            destinations=destinations,
             on_change=self.controller.handle_navigation_change
         )
 
