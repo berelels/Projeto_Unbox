@@ -1,5 +1,6 @@
 import flet as ft
 from models.unbox_model import Unbox_Model
+from views.unbox_view import TelaPrincipalView
 from datetime import datetime
 import pytz
 import os
@@ -64,10 +65,7 @@ class Unbox_Controller:
             self.carregar_itens_disponiveis()
             self.carregar_movimentacoes_tabela()
         elif index == 4:  # Usuários (apenas para DIRETOR)
-            if self.usuario_logado and self.usuario_logado.get("tipo") == "DIRETOR":
-                from models.unbox_model import Unbox_Model
-                from views.unbox_view import TelaPrincipalView
-                
+            if self.usuario_logado and self.usuario_logado.get("tipo") == "DIRETOR":                
                 user_model = Unbox_Model()
                 users_view = TelaPrincipalView(self.page, user_model, self.usuario_logado)
                 self.view.content_area.content = users_view.construir()
@@ -466,14 +464,14 @@ class Unbox_Controller:
             codigo_pessoa = f"{abs(hash(pessoa)) % 1000:03d}"
             
             texto = f"""
-Declaro que recebi o item abaixo listado em perfeitas condicoes de uso.
-Comprometo-me a devolve-lo quando solicitado.
+Declaro que recebi o item abaixo listado em perfeitas condições de uso.
+Comprometo-me a devolve-lo quando solicitado ou quando utilização for concluida.
 
 Dados do Emprestimo:
 ------------------------------------------------
 Data: {data_formatada}
 Responsavel: {pessoa}
-Codigo Responsavel: {codigo_pessoa}
+Codigo Responsável: {codigo_pessoa}
 Item: {nome_item}
 Patrimonio: {patrimonio}
 ------------------------------------------------
