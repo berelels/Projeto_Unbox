@@ -10,7 +10,7 @@ a = Analysis(
     binaries=[],
     datas=[
         ('inventory_template.db', '.'),  # Inclui o banco de dados
-        # Se tiver imagens, adicione aqui: ('assets/unbox_icon*.png', 'assets')
+        ('assets/*.png', 'assets')
     ],
     hiddenimports=[
         'flet',
@@ -51,5 +51,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    # icon='assets/icon.ico', # Descomente se tiver icone
+    icon='assets/icon.ico',
 )
