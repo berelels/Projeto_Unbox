@@ -89,7 +89,7 @@ class LoginView:
                 ft.Container(
                     content=ft.Column([
                         ft.Text(
-                            "ℹ️ Usuário padrão:",
+                            "Usuário padrão:",
                             size=12,
                             color=ft.Colors.GREY_600
                         ),
