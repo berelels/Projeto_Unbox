@@ -1,6 +1,7 @@
 import sqlite3
 import shutil
 from pathlib import Path
+import sys
 import os
 import json
 from pathlib import Path
@@ -87,8 +88,16 @@ class Unbox_Model:
         base_path = Path.home()
         documents_path = base_path / "Documents"
         db_destination = documents_path / "inventory.db"
-        db_template = Path("inventory_template.db")
-        documents_path.mkdir(parents=True, exist_ok=True)
+        
+        if getattr(sys, 'frozen', False):
+            # Se for .exe, procura na pasta temporária do PyInstaller
+            base_dir = sys._MEIPASS
+        else:
+            # Se for script, procura na pasta atual
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            base_dir = os.path.dirname(base_dir) 
+
+        db_template = Path(base_dir) / "inventory_template.db"
 
         if not db_destination.exists():
             print(f"[INFO] Banco não encontrado em: {db_destination}")
