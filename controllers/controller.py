@@ -68,9 +68,10 @@ class Unbox_Controller:
             if self.usuario_logado and self.usuario_logado.get("tipo") == "ADMIN":                
                 self.view.content_area.content = self.view._layout_usuarios()
                 self.carregar_usuarios_tabela()
+            else:
+                self.mostrar_snackbar("❌ Acesso negado! Apenas ADMIN pode gerenciar usuários.", ft.Colors.RED)
         
         self.page.update()
-
 
     def salvar_novo_usuario(self, e):
         """Salva um novo usuário"""
@@ -101,8 +102,6 @@ class Unbox_Controller:
         except Exception as ex:
             self.mostrar_snackbar(f"Erro ao salvar usuário: {ex}", ft.Colors.RED)
 
-
-
     def carregar_usuarios_tabela(self):
         """Carrega usuários na tabela com botão de deletar"""
         try:
@@ -117,13 +116,18 @@ class Unbox_Controller:
                 tipo = user["tipo"]
                 data_criacao = user.get("data_criacao", "N/A")
                 
-                # Botão de deletar
-                btn_deletar = ft.IconButton(
-                    icon=ft.Icons.DELETE,
-                    icon_color=ft.Colors.RED,
-                    tooltip="Deletar usuário",
-                    on_click=lambda e, user_name=nome: self.deletar_usuario(user_name)
-                )
+                # Botão de deletar - NÃO PODE DELETAR ADMIN
+                if tipo == "ADMIN":
+                    btn_deletar = ft.Container(
+                        content=ft.Text("🔒 Protegido", color=ft.Colors.RED, size=12),
+                    )
+                else:
+                    btn_deletar = ft.IconButton(
+                        icon=ft.Icons.DELETE,
+                        icon_color=ft.Colors.RED,
+                        tooltip="Deletar usuário",
+                        on_click=lambda e, user_name=nome: self.deletar_usuario(user_name)
+                    )
                 
                 row = ft.DataRow(cells=[
                     ft.DataCell(ft.Text(nome)),
@@ -137,8 +141,6 @@ class Unbox_Controller:
             
         except Exception as e:
             print(f"Erro ao carregar usuários: {e}")
-
-
 
     def deletar_usuario(self, nome_usuario):
         """Deleta um usuário após confirmação"""

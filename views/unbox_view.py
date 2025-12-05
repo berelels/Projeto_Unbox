@@ -226,7 +226,7 @@ class TelaPrincipalView:
         ]
         
         # Adiciona aba de Usuários apenas para DIRETOR
-        if self.usuario_logado and self.usuario_logado.get("tipo") == "DIRETOR":
+        if self.usuario_logado and self.usuario_logado.get("tipo") == "ADMIN":
             destinations.append(
                 ft.NavigationRailDestination(
                     icon=ft.Icons.PEOPLE_OUTLINED,
@@ -442,10 +442,13 @@ class TelaPrincipalView:
         
         self.tipo_input = ft.Dropdown(
             options=[
+                ft.dropdown.Option("ADMIN"),
                 ft.dropdown.Option("DIRETOR"),
-                ft.dropdown.Option("PROFESSOR")
+                ft.dropdown.Option("COORDENADOR"),
+                ft.dropdown.Option("PROFESSOR"),
             ],
             width=300,
+            label="Tipo de Usuário",
             prefix_icon=ft.Icons.BADGE,
         )
         

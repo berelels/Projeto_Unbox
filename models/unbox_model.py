@@ -481,7 +481,7 @@ class Unbox_Model:
             self.usuarios.append({
                 "usuario": "admin",
                 "senha": self._hash_senha("admin123"),
-                "tipo": "DIRETOR",
+                "tipo": "ADMIN",
                 "data_criacao": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             })
             self.salvar_dados()
@@ -570,7 +570,7 @@ class Unbox_Model:
                 raise ValueError("Usuário já existe!")
             
             # Valida tipo
-            tipos_validos = ["PROFESSOR", "COORDENADOR", "DIRETOR", "ACCESSFULL"]
+            tipos_validos = ["PROFESSOR", "COORDENADOR", "DIRETOR", "ADMIN"]
             if tipo.upper() not in tipos_validos:
                 raise ValueError(f"Tipo inválido! Use: {', '.join(tipos_validos)}")
             
