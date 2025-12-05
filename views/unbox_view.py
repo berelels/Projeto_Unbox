@@ -137,6 +137,19 @@ class TelaPrincipalView:
             border_radius=10,
         )
         
+        # Componentes de Usuários
+        self.usuarios_data_table = ft.DataTable(
+            columns=[
+                ft.DataColumn(ft.Text("Usuário", weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Tipo", weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Data Criação", weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Ações", weight=ft.FontWeight.BOLD)),
+            ],
+            rows=[],
+            border=ft.border.all(1, ft.Colors.GREY_300),
+            border_radius=10,
+        )
+        
         # Componentes de Movimentações
         self.item_emprestimo_dropdown = ft.Dropdown(
             label="Selecionar Item",

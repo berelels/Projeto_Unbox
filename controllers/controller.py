@@ -64,13 +64,111 @@ class Unbox_Controller:
             self.view.content_area.content = self.view._layout_movimentacao()
             self.carregar_itens_disponiveis()
             self.carregar_movimentacoes_tabela()
-        elif index == 4:  # Usuários (apenas para DIRETOR)
-            if self.usuario_logado and self.usuario_logado.get("tipo") == "DIRETOR":                
-                user_model = Unbox_Model()
-                users_view = TelaPrincipalView(self.page, user_model, self.usuario_logado)
-                self.view.content_area.content = users_view.construir()
-                users_view.carregar_usuarios()
+        elif index == 4:  # Usuários (apenas para ADMIN)
+            if self.usuario_logado and self.usuario_logado.get("tipo") == "ADMIN":                
+                self.view.content_area.content = self.view._layout_usuarios()
+                self.carregar_usuarios_tabela()
         
+        self.page.update()
+
+
+    def salvar_novo_usuario(self, e):
+        """Salva um novo usuário"""
+        try:
+            nome = self.view.usuario_input.value.strip()
+            senha = self.view.senha_input.value.strip()
+            tipo = self.view.tipo_input.value
+            
+            if not all([nome, senha, tipo]):
+                self.mostrar_snackbar("Preencha todos os campos!", ft.Colors.ORANGE)
+                return
+            
+            # Cria o usuário
+            self.model.criar_usuario(nome, senha, tipo, self.usuario_logado["usuario"])
+            
+            self.mostrar_snackbar(f"✅ Usuário '{nome}' cadastrado com sucesso!", ft.Colors.GREEN)
+            
+            # Limpa campos
+            self.view.usuario_input.value = ""
+            self.view.senha_input.value = ""
+            self.view.tipo_input.value = None
+            
+            # Recarrega tabela
+            self.carregar_usuarios_tabela()
+            
+        except ValueError as ex:
+            self.mostrar_snackbar(f"❌ {str(ex)}", ft.Colors.RED)
+        except Exception as ex:
+            self.mostrar_snackbar(f"Erro ao salvar usuário: {ex}", ft.Colors.RED)
+
+
+
+    def carregar_usuarios_tabela(self):
+        """Carrega usuários na tabela com botão de deletar"""
+        try:
+            if not self.view or not hasattr(self.view, 'usuarios_data_table'):
+                return
+            
+            self.view.usuarios_data_table.rows.clear()
+            usuarios = self.model.obter_usuarios()
+            
+            for user in usuarios:
+                nome = user["usuario"]
+                tipo = user["tipo"]
+                data_criacao = user.get("data_criacao", "N/A")
+                
+                # Botão de deletar
+                btn_deletar = ft.IconButton(
+                    icon=ft.Icons.DELETE,
+                    icon_color=ft.Colors.RED,
+                    tooltip="Deletar usuário",
+                    on_click=lambda e, user_name=nome: self.deletar_usuario(user_name)
+                )
+                
+                row = ft.DataRow(cells=[
+                    ft.DataCell(ft.Text(nome)),
+                    ft.DataCell(ft.Text(tipo)),
+                    ft.DataCell(ft.Text(data_criacao)),
+                    ft.DataCell(btn_deletar),
+                ])
+                self.view.usuarios_data_table.rows.append(row)
+            
+            self.page.update()
+            
+        except Exception as e:
+            print(f"Erro ao carregar usuários: {e}")
+
+
+
+    def deletar_usuario(self, nome_usuario):
+        """Deleta um usuário após confirmação"""
+        def confirmar_exclusao(e):
+            try:
+                self.model.excluir_usuario(nome_usuario, self.usuario_logado["usuario"])
+                self.mostrar_snackbar(f"✅ Usuário '{nome_usuario}' deletado!", ft.Colors.GREEN)
+                self.carregar_usuarios_tabela()
+                dialog.open = False
+                self.page.update()
+            except Exception as ex:
+                self.mostrar_snackbar(f"❌ {str(ex)}", ft.Colors.RED)
+                dialog.open = False
+                self.page.update()
+        
+        def cancelar(e):
+            dialog.open = False
+            self.page.update()
+        
+        dialog = ft.AlertDialog(
+            title=ft.Text("⚠️ Confirmar Exclusão"),
+            content=ft.Text(f"Deseja realmente deletar o usuário '{nome_usuario}'?\n\nEsta ação não pode ser desfeita!"),
+            actions=[
+                ft.TextButton("Cancelar", on_click=cancelar),
+                ft.TextButton("Deletar", on_click=confirmar_exclusao, style=ft.ButtonStyle(color=ft.Colors.RED)),
+            ],
+        )
+        
+        self.page.overlay.append(dialog)
+        dialog.open = True
         self.page.update()
  
     def carregar_dashboard_stats(self):
