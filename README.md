@@ -88,5 +88,3 @@ flet run main.py
 ## 📜 Licença
 
 Este projeto é de código aberto. Sinta-se livre para contribuir\!
-
-```
