@@ -1,0 +1,37 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Ambientes Virtuais (Venv) ---
+# É comum ter a venv com esses nomes
+venv/
+env/
+.venv/
+
+# --- PyInstaller (Gerados pelo build) ---
+# Estas pastas contêm o executável e arquivos temporários.
+# Não devem ir para o GitHub.
+build/
+dist/
+*.spec
+
+# --- Banco de Dados ---
+# Ignora todos os bancos de dados para não vazar dados reais
+*.db
+*.sqlite3
+
+# EXCEÇÃO: Mantém o template do banco (visto na sua imagem)
+!inventory_template.db
+
+# --- IDEs e Editores ---
+.vscode/
+.idea/
+
+# --- Logs e Arquivos de Sistema ---
+*.log
+.DS_Store
+Thumbs.db
+
+# --- Variáveis de Ambiente (Segurança) ---
+.env
